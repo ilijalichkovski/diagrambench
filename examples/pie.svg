@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" width="960" height="600" font-family="Inter, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+<rect x="0" y="0" width="960" height="600" fill="#FCFCFA"/>
+<path d="M480.00,95.98 A221.02,221.02 0 0 1 697.11,358.42 L599.41,339.78 A121.56,121.56 0 0 0 480.00,195.44 Z" fill="#3E6DE0" stroke="#FFFFFF" stroke-width="1.5" opacity="1" id="glyph:g1"/>
+<path d="M697.11,358.42 A221.02,221.02 0 0 1 480.00,538.02 L480.00,438.56 A121.56,121.56 0 0 0 599.41,339.78 Z" fill="#E8590C" stroke="#FFFFFF" stroke-width="1.5" opacity="1" id="glyph:g2"/>
+<path d="M480.00,538.02 A221.02,221.02 0 0 1 309.70,457.88 L386.34,394.49 A121.56,121.56 0 0 0 480.00,438.56 Z" fill="#2F9E64" stroke="#FFFFFF" stroke-width="1.5" opacity="1" id="glyph:g3"/>
+<path d="M309.70,457.88 A221.02,221.02 0 0 1 274.50,235.64 L366.98,272.25 A121.56,121.56 0 0 0 386.34,394.49 Z" fill="#8D6FD1" stroke="#FFFFFF" stroke-width="1.5" opacity="1" id="glyph:g4"/>
+<path d="M274.50,235.64 A221.02,221.02 0 0 1 398.64,111.50 L435.25,203.98 A121.56,121.56 0 0 0 366.98,272.25 Z" fill="#D9A62E" stroke="#FFFFFF" stroke-width="1.5" opacity="1" id="glyph:g5"/>
+<path d="M398.64,111.50 A221.02,221.02 0 0 1 480.00,95.98 L480.00,195.44 A121.56,121.56 0 0 0 435.25,203.98 Z" fill="#0CA678" stroke="#FFFFFF" stroke-width="1.5" opacity="1" id="glyph:g6"/>
+<text x="659.54" y="172.14" fill="#3B4252" font-size="10.5" font-weight="500" text-anchor="start" id="badge:g1">Hydro</text>
+<text x="628.53" y="500.22" fill="#3B4252" font-size="10.5" font-weight="500" text-anchor="start" id="badge:g2">Wind</text>
+<text x="380.78" y="531.52" fill="#3B4252" font-size="10.5" font-weight="500" text-anchor="end" id="badge:g3">Solar</text>
+<text x="249.85" y="357.13" fill="#3B4252" font-size="10.5" font-weight="500" text-anchor="end" id="badge:g4">Nuclear</text>
+<text x="315.23" y="155.9" fill="#3B4252" font-size="10.5" font-weight="500" text-anchor="end" id="badge:g5">Gas</text>
+<text x="436.34" y="91.78" fill="#3B4252" font-size="10.5" font-weight="500" text-anchor="middle" id="badge:g6">Coal</text>
+<text x="30" y="40" fill="#171C26" font-size="17" font-weight="600" text-anchor="start" id="title:root">Electricity generation mix</text>
+</svg>

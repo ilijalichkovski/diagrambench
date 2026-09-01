@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GlyphBench</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header id="topbar">
+  <div class="brand">Glyph<span>Bench</span></div>
+  <div class="stat"><label>task</label><span id="st-task">–</span></div>
+  <div class="stat"><label>stage</label><span id="st-stage">–</span></div>
+  <div class="stat"><label>actions</label><span id="st-actions">0</span></div>
+  <div class="stat"><label>ref cost</label><span id="st-ref">–</span></div>
+  <div class="stat"><label>regret</label><span id="st-regret">–</span></div>
+  <div class="stat"><label>lifetime</label><span id="st-life">0/0</span></div>
+  <div class="stat"><label>success</label><span id="st-rate">–</span></div>
+  <div class="stat wide"><label>mean regret (last 20)</label>
+    <span id="st-mregret">–</span></div>
+  <div id="st-badge" class="badge idle">waiting</div>
+</header>
+<main>
+  <aside id="left">
+    <h2>Task</h2>
+    <div id="task-id" class="mono"></div>
+    <p id="instruction">Waiting for a session…</p>
+    <div id="verdict"></div>
+  </aside>
+  <section id="center">
+    <svg id="canvas" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet"></svg>
+  </section>
+  <aside id="right">
+    <h2>Agent ⇄ VELD</h2>
+    <div id="log"></div>
+  </aside>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>

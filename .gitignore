@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Benchmark run output (regenerate with run_benchmark.py)
+runs/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
