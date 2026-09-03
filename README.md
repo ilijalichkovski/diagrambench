@@ -2,20 +2,20 @@
 
 **A lifelong tool-learning benchmark.** An LLM agent must master **SIGIL** — a
 deliberately unfamiliar, compiled language for constructing charts and
-diagrams — across **200 levels that unlock strictly in order**. Nothing resets
-between levels. The scientific question:
+diagrams — across **200 levels that unlock strictly in order**. Nothing resets between levels. The core question:
 
-> If an agent works with the same complicated tool for its entire lifetime,
-> does it gradually become an expert?
+> If an agent has to discover how to use the same complicated software from scratch and use it over a long horizon, does it gradually become an expert?
 
-Visualization is the medium because humans can *see* the agent getting closer,
-outputs are beautiful, the tool is deeply compositional, and correctness is
-verified structurally — never from pixels.
+The diagrams the agent produces are visually inspectable, the skills have to be discovered and then remembered, reused and composed, and correctness is verified structurally.
 
-| | |
-|---|---|
-| ![grouped bars](examples/grouped_bar.png) | ![donut](examples/pie.png) |
-| ![dual axis](examples/curriculum/s5-t162.png) | ![architecture](examples/curriculum/s5-t161.png) |
+
+|              |              |
+| ------------ | ------------ |
+| grouped bars | donut        |
+| dual axis    | architecture |
+
+
+
 
 ## The benchmark, in one loop
 
@@ -44,8 +44,7 @@ a 160×60 ASCII view (image mode writes `render.png` for multimodal harnesses).
 
 SIGIL (Staged Instruction Grammar for Illustrated Layouts) borrows its
 worldview from C, CUDA, and array languages rather than any plotting library.
-Files are **aspect-locked translation units** (`unit data|ground|marks|script|
-compose;`), broods follow an alloc → route → commit lifecycle, traits bind
+Files are **aspect-locked translation units** (`unit data|ground|marks|script| compose;`), broods follow an alloc → route → commit lifecycle, traits bind
 inside per-glyph kernels through declared **gauges** that must be calibrated,
 and nothing renders without exactly one `settle!;`. Faults are C-style and
 terse; `./sigil explain F244` exists but costs budget.
@@ -78,15 +77,19 @@ A run always answers with the artifact:
  fills: █=#3E6DE0  ▓=#E8590C  ▒=#2F9E64   ◉=kindled
 ```
 
+
+
 ### Curriculum (200 levels, explicitly staged)
 
-| stage | levels | character |
-|---|---|---|
-| 1 | 1–25 | primitive discovery — one concept at a time |
-| 2 | 26–60 | short compositions (grouped bars, rings, flows, timelines) |
-| 3 | 61–110 | medium: corrals, multi-series, split panels, derived data |
-| 4 | 111–160 | advanced: dual gauges, nested arenas, two-level cleaves |
-| 5 | 161–200 | mastery + plasticity probes (`pipe` first appears at 163) |
+
+| stage | levels  | character                                                  |
+| ----- | ------- | ---------------------------------------------------------- |
+| 1     | 1–25    | primitive discovery — one concept at a time                |
+| 2     | 26–60   | short compositions (grouped bars, rings, flows, timelines) |
+| 3     | 61–110  | medium: corrals, multi-series, split panels, derived data  |
+| 4     | 111–160 | advanced: dual gauges, nested arenas, two-level cleaves    |
+| 5     | 161–200 | mastery + plasticity probes (`pipe` first appears at 163)  |
+
 
 Structured to measure **reuse**, **composition**, **retention** (long-gap
 reintroductions), **plasticity** (new primitives late in life), and rising
@@ -102,8 +105,10 @@ the sandbox is never trusted, and reference solutions never enter it.
 
 - reward: `progress` (levels cleared / gauntlet length)
 - metrics: `levels_completed`, `toolchain_calls`, `failed_builds`,
-  `runtime_traps`, `presents_used`, `mean_regret_stmts` (final program size
-  beyond the hidden reference program), `run_terminated`
+`runtime_traps`, `presents_used`, `mean_regret_stmts` (final program size
+beyond the hidden reference program), `run_terminated`
+
+
 
 ## Running it
 
@@ -144,16 +149,17 @@ write → build → run → present on the first try.
 ## Repo layout
 
 - `environments/diagrambench-v1/` — **the benchmark**: verifiers taskset,
-  SIGIL compiler (`core/sigil_lang.py`, `core/sigil_lower.py`), executor,
-  ASCII rasterizer, project engine + budgets, in-sandbox `./sigil` CLI,
-  reference transpiler, vendored scene engine, `curriculum.json`
+SIGIL compiler (`core/sigil_lang.py`, `core/sigil_lower.py`), executor,
+ASCII rasterizer, project engine + budgets, in-sandbox `./sigil` CLI,
+reference transpiler, vendored scene engine, `curriculum.json`
 - `diagrambench/` — the underlying scene engine (semantic scene, gauges,
-  deterministic layout, SVG renderer, verifier) plus the original op-level
-  interface and lifetime session
+deterministic layout, SVG renderer, verifier) plus the original op-level
+interface and lifetime session
 - `taskgen/` — curriculum authoring; `python3 -m taskgen.build_curriculum`
-  regenerates, `scripts/validate_curriculum.py` (op level) and
-  `scripts/validate_sigil.py` (SIGIL level) must both go green
+regenerates, `scripts/validate_curriculum.py` (op level) and
+`scripts/validate_sigil.py` (SIGIL level) must both go green
 - `viewer/` + `run_benchmark.py` — local animated demo viewer (op interface)
 - `docs/sdk-design.md` — internal design doc for the scene ontology
-  (developers only; agents never see it)
+(developers only; agents never see it)
 - `scripts/` — validation, demos, harness comparison, lifetime reports
+
