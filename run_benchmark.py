@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GlyphBench runner.
+"""DiagramBench runner.
 
 Examples:
   # watch the demo agent learn the instrument across the whole curriculum
@@ -20,8 +20,8 @@ import threading
 import time
 import webbrowser
 
-from glyphbench.session import Session
-from glyphbench.tasks import load_curriculum
+from diagrambench.session import Session
+from diagrambench.tasks import load_curriculum
 
 
 def parse_range(spec, n):
@@ -32,7 +32,7 @@ def parse_range(spec, n):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Run GlyphBench")
+    ap = argparse.ArgumentParser(description="Run DiagramBench")
     ap.add_argument("--agent", default="none",
                     choices=["demo", "random", "none"])
     ap.add_argument("--tasks", default=None, help="e.g. 1-25")
@@ -59,7 +59,7 @@ def main():
 
     hub = None
     if args.serve:
-        from glyphbench.server import EventHub, serve
+        from diagrambench.server import EventHub, serve
         hub = EventHub(session)
         httpd = serve(hub, args.port)
         threading.Thread(target=httpd.serve_forever, daemon=True).start()

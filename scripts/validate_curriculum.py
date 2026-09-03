@@ -9,9 +9,9 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from glyphbench.sdk import TaskEnv
-from glyphbench.tasks import load_curriculum
-from glyphbench.verify import verify
+from diagrambench.sdk import TaskEnv
+from diagrambench.tasks import load_curriculum
+from diagrambench.verify import verify
 
 
 def run_program(program):
@@ -45,7 +45,7 @@ def main():
             for fchk in r["failed"]:
                 print(f"   failed check: {fchk}")
         if render:
-            from glyphbench.render import render_env
+            from diagrambench.render import render_env
             svg, _ = render_env(env)
             with open(os.path.join(outdir, f"{t['id']}.svg"), "w") as f:
                 f.write(svg)

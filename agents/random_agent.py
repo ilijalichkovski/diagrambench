@@ -6,9 +6,9 @@ to exercise error paths.
 
 import random
 
-from glyphbench.datasets import DATASETS
-from glyphbench.scene import FORMS, LAWS, TRAITS
-from glyphbench.sdk import OPS
+from diagrambench.datasets import DATASETS
+from diagrambench.scene import FORMS, LAWS, TRAITS
+from diagrambench.sdk import OPS
 
 
 class RandomAgent:

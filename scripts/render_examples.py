@@ -8,8 +8,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from glyphbench.sdk import TaskEnv
-from glyphbench.render import render_env
+from diagrambench.sdk import TaskEnv
+from diagrambench.render import render_env
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "examples")
 

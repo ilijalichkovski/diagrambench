@@ -1,11 +1,11 @@
-# VELD — the GlyphBench SDK (developer documentation)
+# VELD — the DiagramBench SDK (developer documentation)
 
 > **This document is for benchmark developers only. The agent must never see it.**
 > The agent gets only the bootstrap interface (`families`, `ops`, `sig`, `forms`,
 > `shelf`, `peek`, `census`, `study`, `undo`, `restart`, `present`) and must infer
 > everything else through interaction.
 
-VELD is the single, persistent visualization instrument at the heart of GlyphBench.
+VELD is the single, persistent visualization instrument at the heart of DiagramBench.
 The agent lives with it for its entire lifetime; it never resets or changes.
 
 ---

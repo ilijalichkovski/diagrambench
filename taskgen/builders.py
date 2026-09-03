@@ -6,8 +6,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from glyphbench.datasets import DATASETS, RANKED_ORDERS
-from glyphbench.verify import apply_transform
+from diagrambench.datasets import DATASETS, RANKED_ORDERS
+from diagrambench.verify import apply_transform
 
 
 def levels_from_rows(rows, vein):

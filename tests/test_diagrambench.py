@@ -1,4 +1,4 @@
-"""GlyphBench test suite (stdlib unittest).
+"""DiagramBench test suite (stdlib unittest).
 
 Run:  python3 -m unittest discover tests -v
 """
@@ -9,12 +9,12 @@ import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from glyphbench.ledgers import LedgerSpace
-from glyphbench.render import render_env
-from glyphbench.sdk import OPS, TaskEnv
-from glyphbench.session import Session
-from glyphbench.tasks import agent_view, load_curriculum
-from glyphbench.verify import apply_transform, rows_match, verify
+from diagrambench.ledgers import LedgerSpace
+from diagrambench.render import render_env
+from diagrambench.sdk import OPS, TaskEnv
+from diagrambench.session import Session
+from diagrambench.tasks import agent_view, load_curriculum
+from diagrambench.verify import apply_transform, rows_match, verify
 
 
 def run(env, program):

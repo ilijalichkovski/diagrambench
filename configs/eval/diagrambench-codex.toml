@@ -1,0 +1,13 @@
+model = "deepseek/deepseek-v4-flash"
+
+[taskset]
+id = "diagrambench-v1"
+num_levels = 10
+
+[harness]
+id = "codex"
+runtime = { type = "prime" }
+
+[timeout]
+# a timed-out harness still finalizes and scores partial progress
+rollout = 14400

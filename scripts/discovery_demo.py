@@ -11,7 +11,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from glyphbench.sdk import BOOTSTRAP, TaskEnv
+from diagrambench.sdk import BOOTSTRAP, TaskEnv
 
 
 def main():

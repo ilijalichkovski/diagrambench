@@ -1,4 +1,4 @@
-"""Assemble the 200-task curriculum and write glyphbench/curriculum/curriculum.json.
+"""Assemble the 200-task curriculum and write diagrambench/curriculum/curriculum.json.
 
 Run:  python3 -m taskgen.build_curriculum
 """
@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from taskgen import stage1, stage2, stage3, stage4, stage5
 from taskgen.builders import concepts_of
 
-OUT = os.path.join(os.path.dirname(__file__), "..", "glyphbench",
+OUT = os.path.join(os.path.dirname(__file__), "..", "diagrambench",
                    "curriculum", "curriculum.json")
 
 STAGES = [(1, stage1), (2, stage2), (3, stage3), (4, stage4), (5, stage5)]

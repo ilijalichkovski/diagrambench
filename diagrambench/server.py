@@ -169,5 +169,5 @@ def make_handler(hub):
 
 def serve(hub, port=8321):
     httpd = ThreadingHTTPServer(("127.0.0.1", port), make_handler(hub))
-    print(f"GlyphBench viewer at http://127.0.0.1:{port}")
+    print(f"DiagramBench viewer at http://127.0.0.1:{port}")
     return httpd

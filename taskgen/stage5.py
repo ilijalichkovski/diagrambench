@@ -397,7 +397,7 @@ def build():
     n = p.nest(parcel="p0", aim="west", breadth=0.26, depth=0.36)
     LB = p.sift("experiment_results", "variant", "is", "Variant B")
     BB = p.bin(LB, "conversion", 5)
-    from glyphbench.verify import apply_transform
+    from diagrambench.verify import apply_transform
     from .builders import levels_from_rows
     rowsB = apply_transform("experiment_results",
                             [["sift", "variant", "is", "Variant B"],
@@ -622,7 +622,7 @@ def build():
     L = p.marshal("city_stats", "growth", "waning")
     L2 = p.crop(L, 5)
     from .builders import levels_from_rows as _lvl
-    from glyphbench.verify import apply_transform as _apt
+    from diagrambench.verify import apply_transform as _apt
     rows5 = _apt("city_stats", [["marshal", "growth", "waning"],
                                 ["crop", 5]])
     cells = p.carve(panels[1], "rise", L2, "city", _lvl(rows5, "city"))
@@ -758,7 +758,7 @@ def build():
     # 182 — histogram + strew overlay (distribution + points)
     p = P()
     B = p.bin("ticket_resolution", "hours", 10)
-    from glyphbench.verify import apply_transform as _apt2
+    from diagrambench.verify import apply_transform as _apt2
     rows10 = _apt2("ticket_resolution", [["bin", "hours", 10]])
     cells = p.carve("p0", "span", B, "bin", _lvl(rows10, "bin"), gap=0.06)
     b = p.sow("p0", B, "slab", key="bin")

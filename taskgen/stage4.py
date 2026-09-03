@@ -2,7 +2,7 @@
 New here: loosen (dual gauges), nest under glyphs, inset parcels, abut,
 two-level carving, ramp tints, cord routing (crook/heft)."""
 
-from glyphbench.verify import apply_transform
+from diagrambench.verify import apply_transform
 
 from .builders import (P, task, bar, pie, line, scatter, histogram, diagram,
                        levels_from_rows)

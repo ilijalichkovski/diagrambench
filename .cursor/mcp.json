@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "prime_lab": {
+      "command": "/Users/ilija-prime/.local/share/uv/tools/prime/bin/python3",
+      "args": [
+        "-c",
+        "from prime_cli.main import run; run()",
+        "lab",
+        "mcp",
+        "--workspace",
+        "/Users/ilija-prime/Documents/Work/glyphbench"
+      ]
+    }
+  }
+}

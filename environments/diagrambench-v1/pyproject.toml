@@ -1,0 +1,23 @@
+[project]
+name = "diagrambench-v1"
+description = "DiagramBench x SIGIL: a lifelong tool-learning gauntlet. Master an unfamiliar compiled visualization language across sequential multi-file project levels; every run renders your artifact back to you; scored by host-side replay against hidden semantic goals."
+tags = ["agentic", "tool-learning", "lifelong-learning", "visualization", "eval", "train"]
+version = "0.2.0"
+requires-python = ">=3.10"
+dependencies = [
+    "verifiers>=0.2.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+include = ["diagrambench_v1/**", "pyproject.toml", "README.md"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["diagrambench_v1"]
+
+[tool.verifiers.eval]
+num_examples = 1
+rollouts_per_example = 1

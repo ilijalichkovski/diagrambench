@@ -2,7 +2,7 @@
 New here: corral, split panels, share, derive, veil, plaque, palette,
 invert, rebase, multi-series strands, strewn bars."""
 
-from glyphbench.datasets import DATASETS
+from diagrambench.datasets import DATASETS
 
 from .builders import P, task, bar, pie, line, scatter, histogram, diagram
 
@@ -570,7 +570,7 @@ def build():
     p = P()
     L = p.bin("ticket_resolution", "hours", 8)
     from .builders import levels_from_rows
-    from glyphbench.verify import apply_transform
+    from diagrambench.verify import apply_transform
     rows = apply_transform("ticket_resolution", [["bin", "hours", 8]])
     cells = p.carve("p0", "span", L, "bin", levels_from_rows(rows, "bin"),
                     gap=0.06)

@@ -11,8 +11,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from glyphbench.sdk import TaskEnv
-from glyphbench.verify import verify
+from diagrambench.sdk import TaskEnv
+from diagrambench.verify import verify
 
 GOAL = {"checks": [
     {"check": "brood", "weight": 6, "where": {
