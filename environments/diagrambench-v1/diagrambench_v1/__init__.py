@@ -31,6 +31,16 @@ levels STRICTLY IN ORDER. Each level is a small multi-file project in its own \
 folder; a level is cleared only when you submit an artifact that passes \
 verification, and only then does the next level unlock.
 
+THIS IS A {num_levels}-LEVEL MARATHON. Your single job is to finish all \
+{num_levels} levels. Do NOT stop, do NOT hand back a final answer, and do NOT \
+end your turn until you have either cleared all {num_levels} levels or a budget \
+has ended the run. Clearing one level is not completion — immediately read the \
+next BRIEF and keep going. Difficulty ramps up across the levels; when a level \
+is hard, that is the task, not a signal to stop. Treat every reply as "keep \
+working": after any `./sigil` command, your next action is another `./sigil` \
+command, never a summary. There is always a next level until level {num_levels} \
+is cleared.
+
 The toolchain is `./sigil` in the current directory:
   ./sigil status            free: current level, budgets, project files
   ./sigil grammar           the SIGIL grammar card (costs 1)
@@ -57,10 +67,13 @@ treat them as precious; verify against your own render first.
 runs are re-scored from the build log, so tampering cannot help you.
 - Data arrives as files; loading a ledger requires declaring its schema, \
 including rank orders — read the file before you declare it.
-- Keep going until all levels are cleared or you truly cannot proceed. Finish \
-with a one-line summary of how far you got.
+- NEVER stop until all {num_levels} levels are cleared or a budget ends the \
+run. Every SUCCESS unlocks the next level — go straight to it. Do not conclude, \
+summarize, or wait for further instruction; there is no "done" before level \
+{num_levels}.
 
-Start now: `./sigil status`, then read levels/L{start:03d}/BRIEF.md.
+Start now: `./sigil status`, then read levels/L{start:03d}/BRIEF.md, and keep \
+going until level {num_levels} is cleared.
 """
 
 
