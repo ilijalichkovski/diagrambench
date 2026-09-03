@@ -7,7 +7,7 @@ micro-checks so partial progress is visible ("right bars, wrong grouping").
 Result: {success, semantic_score, layout_score, failed, passed, presentation}
 """
 
-from .errors import VeldError
+from .errors import SigilError
 from .layout import presentation_report
 from .ledgers import LedgerSpace
 
@@ -125,7 +125,7 @@ def _brood_micros(env, want):
         spec = want["data"]
         try:
             expected = apply_transform(spec["from"], spec.get("transform"))
-        except (VeldError, ValueError):
+        except (SigilError, ValueError):
             expected = None
 
         def data_ok(b):
@@ -243,7 +243,7 @@ def _brood_micros(env, want):
             led = env.ledgers.resolve(b.ledger_ref)
             try:
                 vals = led.values(vein)
-            except VeldError:
+            except SigilError:
                 return False
             s = sorted(vals, reverse=(sense == "waning"))
             return vals == s

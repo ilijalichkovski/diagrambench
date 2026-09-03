@@ -25,7 +25,7 @@ STATE = os.path.join(ROOT, ".sigil")
 LOG = os.path.join(STATE, "log.jsonl")
 
 sys.path.insert(0, os.path.join(STATE, "core.zip"))
-from veldcore.project_engine import (DEFAULT_MANIFEST, PRESENT_CAP,  # noqa
+from sigilcore.project_engine import (DEFAULT_MANIFEST, PRESENT_CAP,  # noqa
                                      TOOLCHAIN_CAP, ProjectState, apply_entry,
                                      brief_text, dataset_tsv, replay)
 
@@ -149,9 +149,9 @@ def main():
         outdir = os.path.join(d, "out")
         os.makedirs(outdir, exist_ok=True)
         try:
-            from veldcore.layout import layout_scene
-            from veldcore.ascii_render import ascii_view
-            from veldcore.render import items_to_svg
+            from sigilcore.layout import layout_scene
+            from sigilcore.ascii_render import ascii_view
+            from sigilcore.render import items_to_svg
             items, warnings = layout_scene(state.env.scene,
                                            state.env.ledgers)
             gw, gh = getattr(state, "view_grid", (160, 60))

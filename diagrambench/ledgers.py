@@ -6,7 +6,7 @@ derivation path that yields the right table is accepted.
 """
 
 from .datasets import DATASETS, RANKED_ORDERS, vein_kind, ranked_sort_key
-from .errors import VeldError
+from .errors import SigilError
 
 RELATIONS = ["is", "is_not", "above", "below", "at_least", "at_most", "among"]
 DISTILL_MODES = ["sum", "mean", "median", "min", "max", "count"]
@@ -37,7 +37,7 @@ class Ledger:
     def kind_of(self, vein):
         kinds = self.veins()
         if vein not in kinds:
-            raise VeldError(
+            raise SigilError(
                 f"ledger {self.ref} has no vein '{vein}'. Veins: {', '.join(kinds)}."
             )
         return kinds[vein]
@@ -75,12 +75,12 @@ class LedgerSpace:
 
     def resolve(self, ref):
         if not isinstance(ref, str):
-            raise VeldError(f"expected a ledger name or ref, got {ref!r}.")
+            raise SigilError(f"expected a ledger name or ref, got {ref!r}.")
         if ref in self.derived:
             return self.derived[ref]
         if ref in DATASETS:
             return Ledger(ref, [dict(r) for r in DATASETS[ref]])
-        raise VeldError(
+        raise SigilError(
             f"unknown ledger '{ref}'. Use shelf() for base ledgers; "
             f"derived refs look like L1, L2, ..."
         )
@@ -98,15 +98,15 @@ class LedgerSpace:
         led = self.resolve(ref)
         kind = led.kind_of(vein)
         if relation not in RELATIONS:
-            raise VeldError(
+            raise SigilError(
                 f"sift: unknown relation '{relation}'. Relations: {', '.join(RELATIONS)}."
             )
         if relation in ("above", "below", "at_least", "at_most") and kind != "counted":
-            raise VeldError(
+            raise SigilError(
                 f"sift: relation '{relation}' needs a counted vein; '{vein}' is {kind}."
             )
         if relation == "among" and not isinstance(value, list):
-            raise VeldError("sift: relation 'among' needs a list value.")
+            raise SigilError("sift: relation 'among' needs a list value.")
 
         def keep(v):
             if relation == "is":
@@ -125,7 +125,7 @@ class LedgerSpace:
 
         rows = [dict(r) for r in led.rows if keep(r[vein])]
         if not rows:
-            raise VeldError(
+            raise SigilError(
                 f"sift: no rows of {ref} satisfy {vein} {relation} {value!r}."
             )
         prov = led.provenance + [("sift", vein, relation, value)]
@@ -134,21 +134,21 @@ class LedgerSpace:
     def distill(self, ref, by, take, mode):
         led = self.resolve(ref)
         if mode not in DISTILL_MODES:
-            raise VeldError(
+            raise SigilError(
                 f"distill: unknown mode '{mode}'. Modes: {', '.join(DISTILL_MODES)}."
             )
         by_list = by if isinstance(by, list) else [by]
         for b in by_list:
             k = led.kind_of(b)
             if k == "counted":
-                raise VeldError(
+                raise SigilError(
                     f"distill: 'by' veins must be told or ranked; '{b}' is counted."
                 )
         if mode != "count":
             if not take:
-                raise VeldError("distill: mode '%s' requires take=." % mode)
+                raise SigilError("distill: mode '%s' requires take=." % mode)
             if led.kind_of(take) != "counted":
-                raise VeldError(
+                raise SigilError(
                     f"distill: take vein must be counted; '{take}' is {led.kind_of(take)}."
                 )
         groups = {}
@@ -188,16 +188,16 @@ class LedgerSpace:
     def derive(self, ref, name, mode, a, b=None):
         led = self.resolve(ref)
         if mode not in DERIVE_MODES:
-            raise VeldError(
+            raise SigilError(
                 f"derive: unknown mode '{mode}'. Modes: {', '.join(DERIVE_MODES)}."
             )
         if led.kind_of(a) != "counted":
-            raise VeldError(f"derive: vein 'a' must be counted; '{a}' is {led.kind_of(a)}.")
+            raise SigilError(f"derive: vein 'a' must be counted; '{a}' is {led.kind_of(a)}.")
         if mode in ("ratio", "diff"):
             if not b:
-                raise VeldError(f"derive: mode '{mode}' requires b=.")
+                raise SigilError(f"derive: mode '{mode}' requires b=.")
             if led.kind_of(b) != "counted":
-                raise VeldError(f"derive: vein 'b' must be counted; '{b}' is {led.kind_of(b)}.")
+                raise SigilError(f"derive: vein 'b' must be counted; '{b}' is {led.kind_of(b)}.")
         rows = [dict(r) for r in led.rows]
         if mode == "total_share":
             total = sum(r[a] for r in rows) or 1
@@ -212,9 +212,9 @@ class LedgerSpace:
     def bin(self, ref, vein, bins=8):
         led = self.resolve(ref)
         if led.kind_of(vein) != "counted":
-            raise VeldError(f"bin: vein must be counted; '{vein}' is {led.kind_of(vein)}.")
+            raise SigilError(f"bin: vein must be counted; '{vein}' is {led.kind_of(vein)}.")
         if not isinstance(bins, int) or bins < 2 or bins > 40:
-            raise VeldError("bin: bins must be an integer between 2 and 40.")
+            raise SigilError("bin: bins must be an integer between 2 and 40.")
         vals = led.values(vein)
         lo, hi = min(vals), max(vals)
         import math as _m
@@ -241,7 +241,7 @@ class LedgerSpace:
     def marshal(self, ref, vein, sense):
         led = self.resolve(ref)
         if sense not in SENSES:
-            raise VeldError(f"marshal: sense must be one of: {', '.join(SENSES)}.")
+            raise SigilError(f"marshal: sense must be one of: {', '.join(SENSES)}.")
         kind = led.kind_of(vein)
         key = led.sort_key(vein) if kind == "ranked" else (lambda v: v)
         rows = sorted(
@@ -255,7 +255,7 @@ class LedgerSpace:
     def crop(self, ref, first):
         led = self.resolve(ref)
         if not isinstance(first, int) or first < 1:
-            raise VeldError("crop: first must be a positive integer.")
+            raise SigilError("crop: first must be a positive integer.")
         rows = [dict(r) for r in led.rows[:first]]
         prov = led.provenance + [("crop", first)]
         return self.register(rows, prov, dict(led.local_orders))

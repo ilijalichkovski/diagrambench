@@ -1,14 +1,14 @@
-"""VELD error types.
+"""SIGIL error types.
 
 Errors reveal syntax and constraints, never semantics/purpose.
 """
 
 
-class VeldError(Exception):
+class SigilError(Exception):
     """An op call was refused. The message is shown verbatim to the agent."""
 
 
-class VeldWarning:
+class SigilWarning:
     """A non-fatal advisory attached to an observation."""
 
     def __init__(self, text: str):

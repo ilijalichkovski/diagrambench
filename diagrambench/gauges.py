@@ -12,7 +12,7 @@ their root's gauges; `loosen` gives a brood a private gauge for a trait;
 
 import math
 
-from .errors import VeldError
+from .errors import SigilError
 
 EXTENT_TRAITS = {"stature": "rise", "girth": "span"}
 STATION_TRAITS = {"stance": "span", "perch": "rise"}
@@ -249,6 +249,6 @@ class GaugeSet:
                 return g
             return Gauge("band", levels=led.ordered_levels(vein))
         if kind != "counted":
-            raise VeldError(f"trait '{trait}' requires a counted vein.")
+            raise SigilError(f"trait '{trait}' requires a counted vein.")
         return Gauge("counted", domain=(0, nice_ceil(max(vals))) if vals else (0, 1),
                      zero=True)

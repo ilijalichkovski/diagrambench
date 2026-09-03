@@ -4,7 +4,7 @@ Everything needed to solve tasks is available here; the rendered SVG is for
 humans only.
 """
 
-from .errors import VeldError
+from .errors import SigilError
 
 
 def _parcel_line(scene, p):
@@ -108,7 +108,7 @@ def census_text(env):
             lines.append("")
             lines.append("ADVISORIES")
             lines.extend(f"  - {w}" for w in warnings[:8])
-    except VeldError:
+    except SigilError:
         pass
     except Exception:
         pass
@@ -120,7 +120,7 @@ def study_text(env, ref):
     # ledgers first (base names or L#)
     try:
         led = env.ledgers.resolve(ref)
-    except VeldError:
+    except SigilError:
         led = None
     if led is not None and (ref.startswith("L") or led.ref == ref):
         lines = [f"ledger {led.ref}: {len(led.rows)} rows"]
@@ -234,4 +234,4 @@ def study_text(env, ref):
                 + (f" '{obj.label}'" if obj.label else "")
                 + f" around {', '.join(obj.members)}")
 
-    raise VeldError(f"nothing to study for '{ref}'.")
+    raise SigilError(f"nothing to study for '{ref}'.")

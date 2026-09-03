@@ -1,310 +1,243 @@
-# VELD — the DiagramBench SDK (developer documentation)
+# SIGIL — the DiagramBench instrument (developer documentation)
 
-> **This document is for benchmark developers only. The agent must never see it.**
-> The agent gets only the bootstrap interface (`families`, `ops`, `sig`, `forms`,
-> `shelf`, `peek`, `census`, `study`, `undo`, `restart`, `present`) and must infer
-> everything else through interaction.
+> **This document is for benchmark developers only. The agent must never see
+> it.** The agent gets a project folder, the `./sigil` toolchain, a terse
+> grammar card (`sigil grammar`, which costs budget), and compiler faults —
+> everything else must be inferred through building, running, and studying its
+> own renders.
 
-VELD is the single, persistent visualization instrument at the heart of DiagramBench.
-The agent lives with it for its entire lifetime; it never resets or changes.
+SIGIL (**S**taged **I**nstruction **G**rammar for **I**llustrated **L**ayouts)
+is the single, persistent instrument at the heart of DiagramBench. It has two
+layers:
 
----
+1. **The language & toolchain** (agent-facing): a compiled, multi-file,
+   aspect-locked DSL. The agent writes `.sgl` units, compiles them
+   (`sigil build`), executes them (`sigil run` — which always renders the
+   artifact back), and submits (`sigil present`).
+2. **The scene engine** (internal): a semantic scene the programs lower onto —
+   the representation the verifier reads. Never pixels.
 
-## 1. Conceptual model
-
-VELD does not think in "charts". It thinks in **territory, populations, and law**:
-
-1. **The ground.** Every task begins with a blank rectangular **ground** holding a
-   single root **parcel** (`p0`). Parcels are territories. Space is never addressed
-   by pixels or coordinates — it is **carved**: a parcel can be split along one of
-   its two directions (**span** = horizontal, **rise** = vertical) into cells keyed
-   by the values of a data column. Cells are themselves parcels and can be carved
-   again. All classical "axes", "grouping", "faceting", and "small multiples"
-   emerge from recursive carving.
-
-2. **Ledgers and veins.** Data lives in **ledgers** (small named tables). A column
-   of a ledger is a **vein**. Veins have *kinds*: `told` (nominal categories),
-   `ranked` (ordered categories, e.g. months), `counted` (quantities). New ledgers
-   are produced by refinement operations (`sift`, `distill`, `bin`, `derive`,
-   `marshal`, `crop`) which record provenance.
-
-3. **Glyphs, broods, sowing.** Visual entities are **glyphs**. Data-driven glyphs
-   are created in a **brood** — one glyph per ledger row — by **sowing** a ledger
-   into a parcel. Sowing into a carved parcel requires a `key` vein that routes
-   each glyph to its cell. Standalone glyphs (diagram nodes) are **placed**
-   individually and can be given names.
-
-4. **Metering.** A glyph has **traits**: `stature` (extent along rise), `girth`
-   (extent along span), `stance` (position along span), `perch` (position along
-   rise), `tint` (color), `bulk` (overall size), `veil` (opacity). Data becomes
-   visible by **metering** a brood: `meter(brood, trait, vein)` routes a vein's
-   values into a trait through an automatically managed **gauge** (a calibrated
-   mapping owned by the parcel). Gauges can be re-based, shared, or **loosened**
-   (detached to an independent gauge — how dual scales happen).
-
-5. **Settling.** Glyphs never receive positions. Each parcel has a **settle law**
-   deciding how the glyphs inside each cell arrange themselves:
-   `abreast` (side by side), `heap` (piled on top of one another), `strew`
-   (positioned by stance/perch meterings), `wheel` (angular, in hooped parcels),
-   `current` (flow layout for tethered glyphs, with a compass `heading`).
-
-6. **Hooping.** A parcel may be **hooped**: its span direction becomes angular
-   sweep and its rise becomes radius. Pie/donut charts are hooped parcels whose
-   glyph girths are normalized by the `wheel` law. `inner` reserves a hole.
-
-7. **Cords.** Relationships are **cords**: `tether(a, b)` connects two glyphs
-   (directed by default, arrow at head). `thread(brood, by)` runs a single
-   **strand** through a brood in vein order (this is how line charts exist);
-   `flood(strand)` fills beneath it (area charts); `pipe(a, b, width)` is a cord
-   with magnitude (flow/funnel diagrams). Cords have their own traits
-   (`heft`, `barb`, `sweep`, `crook`).
-
-8. **Bands.** `flock` builds a named selection of glyphs; `pick` selects glyphs
-   from a brood by data predicate; `corral` draws a labeled container around
-   members (architecture groupings).
-
-9. **Script & guides.** `badge` (labels on glyphs, fixed text or vein-driven),
-   `inscribe` (free annotation anchored near a target), `flag` (callout with a
-   leader line), `entitle`/`note` (title/caption), `rim` (calibrated edge showing
-   a gauge — the axis analogue), `weft` (faint gridlines), `key` (legend of a
-   tint/bulk metering).
-
-10. **Emphasis & layers.** `kindle` (highlight), `hush` (de-emphasize),
-    `lift`/`sink` (stacking order).
-
-11. **Patina.** Fixed styling: `tint`, `veil`, `outline`, `palette`. Defaults are
-    deliberately beautiful; patina is rarely required for correctness.
-
-Everything renders through a deterministic pipeline:
-
-```
-agent op calls → semantic scene → layout engine → display list → SVG (+ animation)
-```
-
-The verifier only ever reads the semantic scene, never pixels.
+The instrument never resets or changes across the 200-level lifetime.
 
 ---
 
-## 2. Why prior-library knowledge does not transfer
+## 1. The working loop
 
-| System | Its decomposition | Why VELD differs |
+Each level is a sandboxed project folder; levels unlock strictly in order.
+
+```
+levels/L026/
+├── BRIEF.md            the instruction (the only task statement)
+├── sigil.toml          manifest: unit list, view mode, ASCII grid size
+├── data/*.tsv          inputs — schemas must be declared to load them
+├── src/*.sgl           the agent's units
+└── out/                render.txt (ASCII), render.svg, render.png (image mode)
+
+./sigil status            free — level, budgets, files
+./sigil grammar           the grammar card               (costs 1)
+./sigil build             compile src/*.sgl → IR         (costs 1)
+./sigil run               execute IR; ALWAYS renders     (costs 1)
+./sigil explain F244      one fault code, tersely        (costs 1)
+./sigil present           submit for hidden verification (3 per level)
+```
+
+**Budgets: 40 toolchain invocations and 3 presents per level; exhausting
+either ends the entire run.** With presents that scarce, the render is the
+agent's only cheap feedback — studying your own output is the game.
+
+---
+
+## 2. The language
+
+### Aspect-locked translation units
+
+Every `.sgl` file opens with `unit <aspect>;`. The compiler rejects statements
+outside their unit's aspect (`F312`), so a working level is a small multi-file
+codebase:
+
+| aspect | owns |
+|---|---|
+| `data` | ledger opening (with schemas) and pipeline refinement |
+| `ground` | space: lattices, cleaves, splits, hoops, laws, arenas, alignment |
+| `marks` | populations: broods, gauges, kernels, spawns, cords, emphasis |
+| `script` | rims, wefts, keys, titles, notes, inscriptions, flags |
+| `compose` | `use` and exactly one `settle!;` (the layout barrier) |
+
+### Data: schemas and pipelines
+
+Inputs arrive as TSV files. Loading one requires declaring its schema —
+including rank orders, which the agent can only know by reading the file:
+
+```
+ledger eu = open("data/quarterly_revenue.tsv")
+            schema (quarter: rank["Q1","Q2","Q3","Q4"], product: told,
+                    region: told, revenue: counted)
+          | keep(.region == "Europe")
+          | fold(.quarter; revenue = sum(.revenue));
+```
+
+Vein kinds: `told` (nominal), `rank[…]` (ordered), `counted` (quantity).
+Pipeline stages: `keep`/`drop` (predicates: `== != < > <= >= in [..]`,
+conjunctions with `&&`), `fold` (sum/mean/median/min/max/count),
+`derive` (`.a / .b`, `.a - .b`, `share(.a)`), `rank(.v, asc|desc)`,
+`first(n)`, `bins(.v, n)`.
+
+### Ground: carved territory
+
+Space is never addressed by coordinates. The root arena `@root` is **cleaved**
+along `span` (horizontal) or `rise` (vertical) by a **lattice** built from a
+vein; cells (`@root["Q1"]`, `@root[2]`) are arenas and can be cleaved again —
+axes, grouping, faceting, and small multiples all emerge from recursive
+cleaving. Other ground statements: `split` (unkeyed panels), `hoop` (span
+becomes angular sweep, rise becomes radius — pies/donuts), `law` (see §3),
+`invert`, `breathe`, `palette`, `align`/`abut` (gauge sharing / edge
+alignment), and `arena N = nest …` (inset panels; nesting *under a glyph* is a
+marks statement).
+
+### Marks: the alloc → route → commit lifecycle and kernels
+
+Data-driven glyphs live in **broods** with C-like ceremony — each step is a
+separate statement and each omission is a distinct fault:
+
+```
+brood bars = alloc brood(eu);        // bind rows            (F223 if unused)
+route bars into @root by .quarter;   // spatial routing      (F224 if missing)
+commit bars;                         // materialize          (F221 without a form)
+
+gauge gy = gauge counted;            // declared, not automatic
+gauge gc = gauge banded(eu.product);
+over bars as g {                     // per-glyph kernel (CUDA-flavored)
+  g.form    = slab;
+  g.stature = gy(.revenue);          // traits bind ONLY through gauges
+  g.tint    = gc(.product);
+  g.badge   = text(.revenue) at north;
+  if (.quarter == "Q3" && .product == "Breeze") { kindle g; flag g "Peak"; }
+}
+calibrate gy, floor 0;               // counted gauges MUST be calibrated (F244)
+```
+
+Traits: `stature`/`girth` (extent along rise/span), `stance`/`perch`
+(position), `tint`, `bulk`, `veil`, `heft`. Gauges are `counted` (continuous;
+`calibrate` sets or auto-resolves the domain) or `banded` (discrete levels).
+`loosen brood.trait` detaches a private gauge — how dual scales happen;
+`align @a ~ @b : trait` unifies gauges across panels.
+
+Diagram populations: `spawn n = capsule "Label" in @root;` (named nodes; forms:
+`slab disc wisp ring capsule rhomb drum plaque`), `cord c = tether a -> b;`
+with properties (`c.barb/.crook/.sweep/.heft/.badge`), `pipe a -> b width X`
+(flow magnitude), `corral "Label" { a, b }`. Line/area charts are relational:
+`thread brood by .vein as s;` runs a strand through a brood in vein order;
+`flood s;` fills beneath it. Selections (`pick … where (…) as sel;`) feed
+`kindle`/`hush`/`flag`/`paint`/`inscribe`.
+
+### Compose
+
+`settle!;` — required, exactly once (`F251`). Nothing renders without it: the
+explicit layout barrier, SIGIL's kernel-launch analogue.
+
+---
+
+## 3. The scene model beneath
+
+Programs lower onto a semantic scene of **territory, populations, and law** —
+the ontology the verifier checks:
+
+- **Arenas** (parcels) partition space recursively; a hooped arena is annular.
+- **Broods** of glyphs carry data rows; spawned glyphs carry names.
+- **Gauges** map data to visual magnitude, one per (chart root, direction or
+  trait), unless loosened or shared.
+- **Settle laws** decide arrangement per arena — glyphs never receive
+  positions: `abreast` (side by side), `heap` (stacked), `strew` (stationed by
+  stance/perch), `wheel` (angular, hooped), `current(heading)` (layered flow
+  for tethered glyphs).
+- **Cords/strands/pipes** are first-class relationship objects with their own
+  traits; **corrals** are labeled containers; **emphasis** (`kindle`/`hush`)
+  and **script** (badges, rims, wefts, keys, titles, inscriptions, flags) are
+  scene state, not styling.
+
+The full pipeline is deterministic:
+
+```
+.sgl units → compiler (lower + order) → symbolic IR → scene engine
+           → layout engine → display list → SVG + ASCII (+ PNG in image mode)
+```
+
+---
+
+## 4. Compilation, faults, and traps
+
+The compiler parses all units, enforces aspect locks and lifecycle rules, then
+emits a **dependency-ordered symbolic IR** (Kahn topological sort with phase
+tie-breaks: data → structure → population → binding → relation → script), so
+statement order within a unit rarely matters but missing ceremony always does.
+
+Errors are C-style, terse, and reveal **constraints, never purpose**:
+
+- **Build faults (`F…`)** — syntax (`F1xx`), semantics (`F2xx`: unknown names,
+  double declarations, brood lifecycle, gauge ceremony, missing `settle!`),
+  aspect violations (`F3xx`). Example:
+  `src/marks.sgl:12:6: fault F231: bind before commit of brood 'bars'`
+- **Runtime traps (`T…`)** — data-file problems (`T101–T104`: missing file,
+  schema/header mismatch, non-numeric counted values, undeclared rank values)
+  and scene refusals (`T200`, carrying the engine's exact words), each mapped
+  to the source line that lowered the failing op.
+
+`sigil explain F244` returns one terse sentence — and costs a toolchain
+invocation. Knowledge has a price; the grammar card shows statement *forms*
+only, never what they do.
+
+---
+
+## 5. Why prior-tool knowledge does not transfer
+
+| System | Its decomposition | Why SIGIL differs |
 |---|---|---|
-| **matplotlib** | Imperative per-chart functions (`bar`, `plot`, `pie`) on an axes object; positions/sizes passed as arrays. | VELD has no chart-type functions and no coordinate arguments. A bar chart is *carve → sow → meter stature*; nothing in matplotlib suggests that space must be partitioned before entities exist. |
-| **ggplot2** | Layered grammar: `aes()` mappings + geoms + stats + facets declared in one algebraic expression. | VELD is stateful and sequential; "faceting" and "x position" are the same primitive (carving), and encodings are per-brood mutations, not a declarative bundle. There are no geoms: a line is a *strand threaded through a brood*, an area is a *flooded strand*. |
-| **Vega / Vega-Lite** | JSON spec: marks + encoding channels + scales + transforms compiled at once. | No spec object exists. State propagates through ops with ordering constraints (sow before meter; carve before keyed sow; hoop changes the meaning of girth). Scales (gauges) are side effects owned by parcels, discovered via errors and `study`. |
-| **D3** | Data joins binding rows to DOM nodes; explicit scales; the programmer computes attributes. | Agents never compute attributes or positions. The join analogue (sowing) is one op, and layout is entirely law-driven (`settle`), not attribute-driven. |
-| **Plotly** | Trace objects per chart type with a `layout` dict. | No traces, no layout dict. Composition is spatial (nest/carve) and relational (cords), not a list of traces. |
-| **Mermaid** | Text DSL declaring nodes/edges with chart-type headers. | Diagrams are built by placing glyphs and tethering them under a `current` law, in the *same* ontology as charts — mixed chart/diagram composition is native (`nest` a parcel under a placed glyph and sow bars into it). Mermaid knowledge suggests none of that. |
-| **Graphviz** | Declarative dot graph + global layout attributes. | Cords are first-class scene objects with per-cord traits; routing is a per-cord `crook`; grouping is `corral` around glyph refs, not subgraph syntax. |
+| **matplotlib** | Imperative per-chart calls on an axes object; arrays of positions. | No chart-type functions, no coordinates. A grouped bar chart is *lattice → cleave → alloc/route/commit → kernel bindings through declared gauges → calibrate → settle!* — nothing in matplotlib suggests space is partitioned before entities exist, or that encodings need allocated, calibrated gauges. |
+| **ggplot2** | Layered grammar: one algebraic `aes()` + geom expression. | SIGIL is a compiled multi-unit program with lifecycle faults, not a declarative bundle. There are no geoms: a line is a *strand threaded through a brood*, an area a *flooded strand*. |
+| **Vega / Vega-Lite** | One JSON spec compiled at once. | No spec object. State propagates through statements with ordering and ceremony constraints discovered via faults; scales are explicit objects the author must declare and calibrate. |
+| **D3** | Data joins to DOM nodes; the programmer computes attributes. | Agents never compute attributes or positions — arrangement is law-driven (`law`, `settle!`), and the join analogue is the alloc/route/commit lifecycle. |
+| **Mermaid / Graphviz** | Declarative node/edge text with layout attributes. | Diagrams share one ontology with charts: spawned glyphs under a `current` law, cords with per-cord traits, corrals around refs — and mixed compositions (a latency chart nested *under* a service node) are native. |
+| **C / CUDA** (workflow) | — | The *workflow* borrows deliberately: translation units, compile-then-run, terse faults, kernels over elements, a launch barrier. But the semantics (territory, broods, gauges, laws) map to no systems language, so the familiar workflow carries no answers. |
 
-The novelty is structural, not lexical: the *order of decisions* an agent must make
-(carve space → populate → meter → settle → guide) does not match any of the above,
-so knowing them does not reveal solutions — though general visualization concepts
-(quantity → length, category → hue) still help, as intended.
-
----
-
-## 3. Object model & lifecycle
-
-Refs are short ids handed out by ops: `p#` parcel, `b#` brood, `g#` glyph,
-`c#` cord, `s#` strand, `f#` flock, `L#` derived ledger, `k#` corral, `a#`
-annotation. Base ledgers are addressed by name (from `shelf()`).
-
-Lifecycle rules (enforced; violations produce instructive errors):
-
-- A parcel can be carved once (`undo` or `nest` to go further). Carving a parcel
-  that already hosts sown broods is refused.
-- `sow` into a carved parcel requires `key=` (a vein of the sown ledger whose
-  values match the carve keys). Sowing into an uncarved parcel pools all glyphs
-  in the single implicit cell.
-- `meter` requires trait/vein kind agreement: `stature`, `girth`, `perch`,
-  `stance`, `bulk`, `veil`, `heft` need `counted` veins (exception: `stance`/
-  `perch` accept `ranked`/`told` veins, producing a stationed gauge); `tint`
-  accepts `told`/`ranked` (palette) or `counted` (ramp).
-- `settle("strew")` requires at least one of stance/perch metered.
-  `thread` requires an ordering vein. `flood` requires a strand.
-- `hoop` must precede sowing in that parcel. In a hooped parcel `girth` means
-  angular share and the default law is `wheel`.
-- `tether`/`pipe` require glyph refs (or names of placed glyphs).
-- `settle("current", heading=…)` applies to parcels whose glyphs are placed;
-  tethers determine ordering (layered flow layout).
-- One gauge per (parcel, direction-or-trait); `loosen` gives a brood a private
-  gauge; `share` unifies gauges across parcels (aligned panels).
-
-State model: the scene is a persistent object per task; every mutating op pushes
-an undo snapshot. `restart` clears the task's scene. `present` submits the scene
-for verification.
+The novelty is structural: the order of decisions (declare data with schemas →
+carve territory → allocate and route populations → bind traits through
+calibrated gauges → set laws → raise guides → settle) matches no existing
+tool, while general visualization intuitions (quantity → length, category →
+hue) still help — as intended.
 
 ---
 
-## 4. Operation families and signatures
+## 6. Verification, scoring, and anti-tampering
 
-Weak-typed signatures exactly as `sig()` reveals them. `?` marks optional.
+Each level carries a hidden goal: typed checks against the semantic scene
+(data content as row multisets — any correct derivation path passes; structure;
+encodings; relationships; emphasis; annotations; guides) plus a presentation
+score from the layout report (overlaps, bounds, crossings). Alternate valid
+layouts pass; look-alikes fail with named reasons, which `present` reports —
+that feedback is deliberately scarce at 3 presents per level.
 
-### family `ledgers` (data refinement)
-| op | signature |
-|---|---|
-| `shelf` | `shelf()` → names & sizes of base ledgers |
-| `peek` | `peek(ledger, rows?)` → first rows |
-| `veins` | `veins(ledger)` → vein names & kinds |
-| `sift` | `sift(ledger, vein, relation, value)` → ledger. relation ∈ `is,is_not,above,below,at_least,at_most,among` |
-| `distill` | `distill(ledger, by, take, mode)` → ledger. mode ∈ `sum,mean,median,min,max,count` |
-| `derive` | `derive(ledger, name, mode, a, b?)` → ledger. mode ∈ `ratio,diff,total_share` |
-| `bin` | `bin(ledger, vein, bins?)` → ledger with `bin`,`tally` |
-| `marshal` | `marshal(ledger, vein, sense)` → ledger. sense ∈ `waxing,waning` |
-| `crop` | `crop(ledger, first)` → ledger |
-
-### family `ground` (space)
-| op | signature |
-|---|---|
-| `carve` | `carve(parcel, along, ledger, by, gap?)` along ∈ `span,rise` |
-| `split` | `split(parcel, along, count, gap?)` → equal unkeyed cells (panels) |
-| `cell` | `cell(parcel, at)` → parcel ref of a carve/split cell |
-| `nest` | `nest(parcel?, host?, aim?, breadth?, depth?)` → inset parcel (in a parcel or under a glyph) |
-| `hoop` | `hoop(parcel, inner?)` |
-| `breathe` | `breathe(parcel, amount)` padding 0..1 |
-| `invert` | `invert(parcel, along)` reverse direction |
-| `abut` | `abut(parcel_a, parcel_b, edge)` alignment constraint |
-
-### family `sowing` (entity creation)
-| op | signature |
-|---|---|
-| `sow` | `sow(parcel, ledger, form, key?)` → brood |
-| `place` | `place(parcel, form, name?)` → glyph |
-
-Forms (from `forms()`): `slab` (block; wedge when hooped), `disc`, `wisp`
-(small point), `ring`, `capsule` (rounded card, auto-badged with its name),
-`rhomb` (decision), `drum` (store/database), `plaque` (text card).
-
-### family `metering`
-| op | signature |
-|---|---|
-| `meter` | `meter(brood, trait, vein)` |
-| `rebase` | `rebase(parcel, trait, floor?, ceil?)` set gauge domain |
-| `loosen` | `loosen(brood, trait)` detach onto private gauge |
-| `share` | `share(parcel_a, parcel_b, trait)` unify gauges |
-| `unmeter` | `unmeter(brood, trait)` |
-
-### family `settling`
-| op | signature |
-|---|---|
-| `settle` | `settle(parcel, law, heading?)` law ∈ `abreast,heap,strew,wheel,current`; heading ∈ `east,west,north,south` |
-
-### family `cords`
-| op | signature |
-|---|---|
-| `tether` | `tether(tail, head, sense?)` sense ∈ `forth,both` → cord |
-| `thread` | `thread(brood, by)` → strand |
-| `flood` | `flood(strand)` |
-| `pipe` | `pipe(tail, head, width)` width = number or vein value → cord |
-| `barb` | `barb(cord, at)` at ∈ `head,tail,both,none` |
-| `sweep` | `sweep(cord, amount)` curvature −1..1 |
-| `crook` | `crook(cord, style)` style ∈ `straight,bend,arc` |
-| `heft` | `heft(cord_or_strand, weight)` thickness 0..1 |
-
-### family `bands`
-| op | signature |
-|---|---|
-| `flock` | `flock(members, name?)` → flock |
-| `pick` | `pick(brood, vein, relation, value)` → flock |
-| `corral` | `corral(members, label?)` → corral |
-| `disband` | `disband(flock_or_corral)` |
-
-### family `script`
-| op | signature |
-|---|---|
-| `badge` | `badge(target, text?, vein?, aim?)` aim ∈ `auto,north,south,east,west,center,rim` |
-| `inscribe` | `inscribe(text, near?, aim?)` → annotation |
-| `flag` | `flag(target, text)` → callout annotation |
-| `entitle` | `entitle(parcel, text)` |
-| `note` | `note(parcel, text)` |
-
-### family `guides`
-| op | signature |
-|---|---|
-| `rim` | `rim(parcel, side)` side ∈ `south,west,north,east` (east binds a loosened rise gauge if present) |
-| `weft` | `weft(parcel, along)` gridlines |
-| `key` | `key(parcel, brood, trait)` legend |
-
-### family `emphasis`
-| op | signature |
-|---|---|
-| `kindle` | `kindle(target)` |
-| `hush` | `hush(target)` |
-
-### family `layers`
-| op | signature |
-|---|---|
-| `lift` | `lift(target)` |
-| `sink` | `sink(target)` |
-
-### family `patina`
-| op | signature |
-|---|---|
-| `tint` | `tint(target, hue)` hue ∈ named tokens (`ember,tide,moss,plum,sand,slate,rose,teal,ink,mist`) |
-| `veil` | `veil(target, amount)` |
-| `outline` | `outline(target, weight)` |
-| `palette` | `palette(parcel, name)` name ∈ `quill,dusk,field,ember` |
-
-### family `oracle` (introspection — bootstrap)
-`families()`, `ops(family)`, `sig(op)`, `forms()`, `census()`, `study(ref)`,
-`trace()`.
-
-### family `helm` (control — bootstrap)
-`undo()`, `restart()`, `present()`.
-
-Counting primitives: 63 ops + 8 forms + 8 traits + 5 laws + 7 sift relations
-+ 6 distill modes + 3 derive modes + 4 headings + 4 sides + 7 aims + 4
-palettes ≈ **119 meaningful primitives** drawn from **14 conceptual
-families** — within the spec's 80–150 primitive / 15–30 family targets.
+Scoring never trusts the sandbox: every `build` log entry embeds the full
+source tree, and the host **replays the log** through the identical compiler,
+engine, and verifier. Reference solutions never enter the runtime. Recorded
+per level: toolchain calls, failed builds, traps, presents, and **statement
+regret** (final program statements − the transpiled reference program's
+statements).
 
 ---
 
-## 5. Error semantics
+## 7. Rendering and feedback
 
-Errors reveal **syntax and constraints, never purpose**. Patterns:
+Deterministic layout (no randomness): arena tree → nested rects/annuli; laws
+slot, stack, station, fan, or flow their glyphs (flow = longest-path layering
++ barycenter ordering; cords leave and arrive perpendicular to node faces);
+gauges get nice-number or band calibration; guides and annotations place with
+collision awareness.
 
-- Arity/type: `` sow: unknown argument 'colour'. Accepted: parcel, ledger, form, key. ``
-- Kind mismatch: `` meter: trait 'stature' requires a counted vein; 'product' is told. ``
-- Ordering: `` sow: parcel p0 is carved by 'quarter'; provide key= to route glyphs. ``
-- Enum: `` settle: unknown law 'grid'. Laws: abreast, heap, strew, wheel, current. ``
-- Missing state: `` thread: brood b1 has no metering along rise; strand would be flat. `` (warning, not error)
-
-Never emitted: "use X to build a grouped bar chart" or any purpose-revealing text.
-
----
-
-## 6. Introspection / observation model
-
-After every op the agent receives a short textual consequence, e.g.
-
-```
-b1: 12 glyphs sown into p0 (4 cells by 'quarter', 3 per cell).
-```
-
-`census()` prints the standard agent view (entities, parcels & laws, meterings,
-cords, guides, warnings). `study(ref)` gives per-object detail, including gauge
-calibration, cell membership, provenance of derived ledgers, and cord topology.
-Everything the verifier can see is reachable textually; the rendered SVG is for
-humans only.
-
----
-
-## 7. Rendering mapping
-
-Deterministic layout engine, no randomness:
-
-- Parcel tree → nested rects (gaps, breathing, hoop → annulus).
-- `abreast`/`heap` → slotting within cells; `strew` → gauge-resolved stations;
-  `wheel` → normalized angular spans; `current` → layered flow layout
-  (longest-path layering, barycenter ordering, orthogonal-ish cord routing).
-- Gauges → nice-number calibration for counted veins; band calibration for
-  told/ranked.
-- Guides, badges, annotations placed with collision-aware anchoring.
-- Output: a **display list** of stable-id primitives; the viewer tweens numeric
-  attributes between successive display lists, so every meaningful change
-  animates (bars grow, wedges morph, nodes glide, labels fade).
-
-Visual defaults: light paper background, Inter/system typography, restrained
-palettes, hairline gridlines, generous whitespace. Beauty is the default; the
-agent's difficulty is semantic, never cosmetic.
+Every successful `run` returns the artifact as a **160×60 ASCII raster**
+(configurable 100×40–200×72): fill-patterned bars and wedges with a pattern
+legend, box-drawn nodes and corrals, routed cords with arrowheads, rims,
+ticks, and labels — legible enough to debug from, and the token weight is the
+point. Image mode additionally writes `render.svg`/`render.png` for
+multimodal harnesses. Visual defaults (paper background, restrained palettes,
+Inter-stack typography) are deliberately beautiful: the agent's difficulty is
+semantic construction, never cosmetics.

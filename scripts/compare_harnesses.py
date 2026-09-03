@@ -20,7 +20,7 @@ def summarize(run_dir):
     if t is None:
         return None
     info = t.get("info") or {}
-    gb = info.get("diagrambench") or info.get("glyphbench") or {}
+    gb = info.get("diagrambench") or {}
     rewards = t.get("rewards") or {}
     metrics = t.get("metrics") or {}
     usage = t.get("usage") or {}

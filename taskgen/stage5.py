@@ -1218,11 +1218,11 @@ def build():
         "Once more, from memory: 'monthly_finance' revenue slabs by "
         "'period', margin threaded on a loosened ember gauge, all rims, "
         "weft, kindle after-launch, flag M24 'highest margin', entitled "
-        "'The growth story', noted 'prepared with VELD'.",
+        "'The growth story', noted 'prepared with SIGIL'.",
         "monthly_finance", "period", "revenue", "margin",
         kindle_bar_where={"era": "after launch"},
         flag_line=("highest margin", {"period": "M24"}),
-        title="The growth story", note="prepared with VELD"))
+        title="The growth story", note="prepared with SIGIL"))
 
     # 200 — the grand finale: architecture + funnel + chart in panels
     p = P()

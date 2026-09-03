@@ -103,7 +103,7 @@ def _core_zip_bytes():
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         for py in sorted((_PKG / "core").glob("*.py")):
-            z.writestr(f"veldcore/{py.name}", py.read_text())
+            z.writestr(f"sigilcore/{py.name}", py.read_text())
     return buf.getvalue()
 
 

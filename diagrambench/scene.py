@@ -1,4 +1,4 @@
-"""The semantic scene: the canonical internal representation of a VELD artifact.
+"""The semantic scene: the canonical internal representation of a SIGIL artifact.
 
 Everything the verifier scores lives here. The layout engine and renderer are
 pure functions of (scene, ledgerspace).
@@ -6,7 +6,7 @@ pure functions of (scene, ledgerspace).
 
 import copy
 
-from .errors import VeldError
+from .errors import SigilError
 
 FORMS = ["slab", "disc", "wisp", "ring", "capsule", "rhomb", "drum", "plaque"]
 TRAITS = ["stature", "girth", "stance", "perch", "tint", "bulk", "veil", "heft"]
@@ -160,13 +160,13 @@ class Scene:
     def parcel(self, ref):
         p = self.parcels.get(ref)
         if not p:
-            raise VeldError(f"unknown parcel '{ref}'. Parcels: {', '.join(self.parcels)}.")
+            raise SigilError(f"unknown parcel '{ref}'. Parcels: {', '.join(self.parcels)}.")
         return p
 
     def brood(self, ref):
         b = self.broods.get(ref)
         if not b:
-            raise VeldError(f"unknown brood '{ref}'.")
+            raise SigilError(f"unknown brood '{ref}'.")
         return b
 
     def glyph(self, ref):
@@ -175,18 +175,18 @@ class Scene:
         for g in self.glyphs.values():
             if g.name == ref:
                 return g
-        raise VeldError(f"unknown glyph '{ref}' (no such ref or name).")
+        raise SigilError(f"unknown glyph '{ref}' (no such ref or name).")
 
     def cord(self, ref):
         c = self.cords.get(ref)
         if not c:
-            raise VeldError(f"unknown cord '{ref}'.")
+            raise SigilError(f"unknown cord '{ref}'.")
         return c
 
     def strand_of(self, ref):
         s = self.strands.get(ref)
         if not s:
-            raise VeldError(f"unknown strand '{ref}'.")
+            raise SigilError(f"unknown strand '{ref}'.")
         return s
 
     def resolve_target(self, ref):
@@ -203,7 +203,7 @@ class Scene:
         for g in self.glyphs.values():
             if g.name == ref:
                 return "glyph", g
-        raise VeldError(f"unknown target '{ref}'.")
+        raise SigilError(f"unknown target '{ref}'.")
 
     def target_glyphs(self, ref):
         """Expand a target ref to a list of glyphs (for emphasis/patina/badge)."""
@@ -214,7 +214,7 @@ class Scene:
             return [self.glyphs[g] for g in obj.glyphs]
         if kind == "flock" or kind == "corral":
             return [self.glyphs[g] for g in obj.members]
-        raise VeldError(f"target '{ref}' is a {kind}; expected glyphs, a brood, or a flock.")
+        raise SigilError(f"target '{ref}' is a {kind}; expected glyphs, a brood, or a flock.")
 
     # -- structure helpers ------------------------------------------------
     def chart_root(self, pid):

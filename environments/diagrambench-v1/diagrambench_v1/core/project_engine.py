@@ -11,7 +11,7 @@ import os
 import tempfile
 
 from .datasets import DATASETS
-from .errors import VeldError
+from .errors import SigilError
 from .sigil_exec import GRAMMAR, Trap, execute, explain
 from .sigil_lang import Fault
 from .sigil_lower import compile_project

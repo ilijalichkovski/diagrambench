@@ -1,4 +1,4 @@
-"""VELD operations: registry, dispatcher, and every op implementation.
+"""SIGIL operations: registry, dispatcher, and every op implementation.
 
 The dispatcher enforces syntax (arg names, required args, enums) with
 instructive-but-semantics-free errors; each op enforces its own state
@@ -6,7 +6,7 @@ constraints the same way.
 """
 
 from .datasets import DATASETS
-from .errors import VeldError
+from .errors import SigilError
 from .gauges import GaugeSet
 from .ledgers import (DERIVE_MODES, DISTILL_MODES, RELATIONS, SENSES, LedgerSpace)
 from .scene import (AIMS, FORMS, HEADINGS, HUES, LAWS, PALETTES, SIDES, TRAITS,
@@ -113,7 +113,7 @@ class TaskEnv:
             self.snapshot()
         try:
             out = od.fn(self, **args)
-        except VeldError as e:
+        except SigilError as e:
             if od.mutates:  # restore pre-call state (op may have half-mutated)
                 self.scene, self.ledgers, self.trace_log = self._undo.pop()
             return {**base, "ok": False, "mutated": False, "error": f"{opname}: {e}"
@@ -162,7 +162,7 @@ def shelf(env):
 def peek(env, ledger, rows=6):
     led = env.ledgers.resolve(ledger)
     if not isinstance(rows, int) or rows < 1:
-        raise VeldError("rows must be a positive integer.")
+        raise SigilError("rows must be a positive integer.")
     names = led.vein_names()
     lines = ["  ".join(names)]
     for r in led.rows[:rows]:
@@ -239,12 +239,12 @@ def crop(env, ledger, first):
 
 def _fresh_for_structure(env, p, what):
     if p.carve:
-        raise VeldError(f"parcel {p.id} is already carved by '{p.carve['by']}'.")
+        raise SigilError(f"parcel {p.id} is already carved by '{p.carve['by']}'.")
     if p.split:
-        raise VeldError(f"parcel {p.id} is already split.")
+        raise SigilError(f"parcel {p.id} is already split.")
     direct = [g for g in env.scene.glyphs.values() if g.parcel == p.id]
     if direct:
-        raise VeldError(
+        raise SigilError(
             f"parcel {p.id} already hosts {len(direct)} glyphs; {what} must "
             f"come before sowing/placing (undo, or nest a fresh parcel).")
 
@@ -257,15 +257,15 @@ def carve(env, parcel, along, ledger, by, gap=None):
     scene = env.scene
     p = scene.parcel(parcel)
     if p.hooped:
-        raise VeldError(f"parcel {p.id} is hooped; hooped parcels cannot be carved.")
+        raise SigilError(f"parcel {p.id} is hooped; hooped parcels cannot be carved.")
     _fresh_for_structure(env, p, "carving")
     led = env.ledgers.resolve(ledger)
     kind = led.kind_of(by)
     if kind == "counted":
-        raise VeldError(f"'by' must be a told or ranked vein; '{by}' is counted.")
+        raise SigilError(f"'by' must be a told or ranked vein; '{by}' is counted.")
     levels = led.ordered_levels(by)
     if len(levels) > 30:
-        raise VeldError(f"'{by}' has {len(levels)} levels; carve accepts at most 30.")
+        raise SigilError(f"'{by}' has {len(levels)} levels; carve accepts at most 30.")
     cells = {}
     ids = []
     for lv in levels:
@@ -288,10 +288,10 @@ def split(env, parcel, along, count, gap=None):
     scene = env.scene
     p = scene.parcel(parcel)
     if p.hooped:
-        raise VeldError(f"parcel {p.id} is hooped and cannot be split.")
+        raise SigilError(f"parcel {p.id} is hooped and cannot be split.")
     _fresh_for_structure(env, p, "splitting")
     if not isinstance(count, int) or not (2 <= count <= 8):
-        raise VeldError("count must be an integer between 2 and 8.")
+        raise SigilError("count must be an integer between 2 and 8.")
     ids = []
     for _ in range(count):
         cid = scene.next_id("p")
@@ -311,15 +311,15 @@ def cell(env, parcel, at):
         if at in p.carve["cells"]:
             return (f"{p.carve['cells'][at]} (cell '{at}' of {p.id}).",
                     p.carve["cells"][at])
-        raise VeldError(f"{p.id} has no cell '{at}'. Cells: "
+        raise SigilError(f"{p.id} has no cell '{at}'. Cells: "
                         f"{', '.join(str(k) for k in p.carve['order'])}.")
     if p.split:
         if isinstance(at, int) and 1 <= at <= len(p.split["cells"]):
             return (f"{p.split['cells'][at-1]} (panel {at} of {p.id}).",
                     p.split["cells"][at - 1])
-        raise VeldError(f"{p.id} has {len(p.split['cells'])} panels; "
+        raise SigilError(f"{p.id} has {len(p.split['cells'])} panels; "
                         f"at must be 1..{len(p.split['cells'])}.")
-    raise VeldError(f"parcel {p.id} is neither carved nor split.")
+    raise SigilError(f"parcel {p.id} is neither carved nor split.")
 
 
 @op("ground", [Param("parcel", "parcel ref", required=False),
@@ -331,7 +331,7 @@ def cell(env, parcel, at):
 def nest(env, parcel=None, host=None, aim=None, breadth=None, depth=None):
     scene = env.scene
     if (parcel is None) == (host is None):
-        raise VeldError("provide exactly one of parcel= or host=.")
+        raise SigilError("provide exactly one of parcel= or host=.")
     nid = scene.next_id("p")
     np = Parcel(nid, kind="nest")
     if host is not None:
@@ -359,7 +359,7 @@ def hoop(env, parcel, inner=None):
     p = env.scene.parcel(parcel)
     _fresh_for_structure(env, p, "hooping")
     if inner is not None and not (0 <= inner < 0.95):
-        raise VeldError("inner must be between 0 and 0.95.")
+        raise SigilError("inner must be between 0 and 0.95.")
     p.hooped = {"inner": inner or 0.0}
     extra = f" with inner {inner:g}" if inner else ""
     return (f"{p.id} hooped{extra}: its span is now angular sweep, "
@@ -370,7 +370,7 @@ def hoop(env, parcel, inner=None):
 def breathe(env, parcel, amount):
     p = env.scene.parcel(parcel)
     if not (0 <= amount <= 0.45):
-        raise VeldError("amount must be between 0 and 0.45.")
+        raise SigilError("amount must be between 0 and 0.45.")
     p.breathe = amount
     return f"{p.id} now breathes {amount:g}."
 
@@ -409,20 +409,20 @@ def sow(env, parcel, ledger, form, key=None):
     p = scene.parcel(parcel)
     led = env.ledgers.resolve(ledger)
     if len(led.rows) > 60:
-        raise VeldError(f"ledger {led.ref} has {len(led.rows)} rows; sow accepts "
+        raise SigilError(f"ledger {led.ref} has {len(led.rows)} rows; sow accepts "
                         f"at most 60 (distill or crop first).")
     if p.split:
-        raise VeldError(f"parcel {p.id} is split into panels; sow into one panel "
+        raise SigilError(f"parcel {p.id} is split into panels; sow into one panel "
                         f"(see cell()).")
     if p.carve:
         if not key:
-            raise VeldError(f"parcel {p.id} is carved by '{p.carve['by']}'; "
+            raise SigilError(f"parcel {p.id} is carved by '{p.carve['by']}'; "
                             f"provide key= to route glyphs to cells.")
         led.kind_of(key)
         unmatched = sorted({str(r[key]) for r in led.rows
                             if r[key] not in p.carve["cells"]})
         if unmatched:
-            raise VeldError(
+            raise SigilError(
                 f"key '{key}' values {', '.join(unmatched[:4])} match no cell of "
                 f"{p.id} (cells: {', '.join(str(k) for k in p.carve['order'])}).")
     bid = scene.next_id("b")
@@ -451,11 +451,11 @@ def place(env, parcel, form, name=None):
     scene = env.scene
     p = scene.parcel(parcel)
     if p.carve or p.split:
-        raise VeldError(f"parcel {p.id} is partitioned; place into a specific cell.")
+        raise SigilError(f"parcel {p.id} is partitioned; place into a specific cell.")
     if name:
         for g in scene.glyphs.values():
             if g.name == name:
-                raise VeldError(f"a glyph named '{name}' already exists ({g.id}).")
+                raise SigilError(f"a glyph named '{name}' already exists ({g.id}).")
     gid = scene.next_id("g")
     g = Glyph(gid, p.id, form, name=name)
     if name and form in ("capsule", "rhomb", "drum", "plaque", "slab"):
@@ -476,7 +476,7 @@ def meter(env, brood, trait, vein):
     led = env.ledgers.resolve(b.ledger_ref)
     kind = led.kind_of(vein)
     if trait in ("stature", "girth", "bulk", "veil", "heft") and kind != "counted":
-        raise VeldError(f"trait '{trait}' requires a counted vein; "
+        raise SigilError(f"trait '{trait}' requires a counted vein; "
                         f"'{vein}' is {kind}.")
     b.meterings[trait] = vein
     g = env.gauges().for_brood(b, trait)
@@ -493,12 +493,12 @@ def rebase(env, parcel, trait, floor=None, ceil=None):
     for v, nm in ((floor, "floor"), (ceil, "ceil")):
         if v is not None and (isinstance(v, bool) or
                               not isinstance(v, (int, float))):
-            raise VeldError(f"{nm} must be a number.")
+            raise SigilError(f"{nm} must be a number.")
     if floor is None and ceil is None:
         if trait in p.gauge_overrides:
             del p.gauge_overrides[trait]
             return f"{p.id}: {trait} gauge restored to automatic calibration."
-        raise VeldError("provide floor= and/or ceil=.")
+        raise SigilError("provide floor= and/or ceil=.")
     p.gauge_overrides[trait] = (floor, ceil)
     lo = "auto" if floor is None else f"{floor:g}"
     hi = "auto" if ceil is None else f"{ceil:g}"
@@ -510,7 +510,7 @@ def rebase(env, parcel, trait, floor=None, ceil=None):
 def loosen(env, brood, trait):
     b = env.scene.brood(brood)
     if trait not in b.meterings:
-        raise VeldError(f"brood {b.id} has no {trait} metering to loosen.")
+        raise SigilError(f"brood {b.id} has no {trait} metering to loosen.")
     if trait not in b.loose_traits:
         b.loose_traits.append(trait)
     g = env.gauges().for_brood(b, trait)
@@ -532,7 +532,7 @@ def share(env, parcel_a, parcel_b, trait):
 def unmeter(env, brood, trait):
     b = env.scene.brood(brood)
     if trait not in b.meterings:
-        raise VeldError(f"brood {b.id} has no {trait} metering.")
+        raise SigilError(f"brood {b.id} has no {trait} metering.")
     del b.meterings[trait]
     if trait in b.loose_traits:
         b.loose_traits.remove(trait)
@@ -550,11 +550,11 @@ def settle(env, parcel, law, heading=None):
     scene = env.scene
     p = scene.parcel(parcel)
     if law == "wheel" and not (p.hooped or scene.chart_root(p.id).hooped):
-        raise VeldError("law 'wheel' applies only to hooped parcels.")
+        raise SigilError("law 'wheel' applies only to hooped parcels.")
     if law == "strew":
         broods = scene.broods_in(p.id)
         if not any(t in b.meterings for b in broods for t in ("stance", "perch")):
-            raise VeldError(f"law 'strew' needs at least one stance or perch "
+            raise SigilError(f"law 'strew' needs at least one stance or perch "
                             f"metering among the broods of {p.id}.")
     if law == "current":
         heading = heading or "east"
@@ -574,7 +574,7 @@ def tether(env, tail, head, sense=None):
     a = scene.glyph(tail)
     b = scene.glyph(head)
     if a.id == b.id:
-        raise VeldError("tail and head are the same glyph.")
+        raise SigilError("tail and head are the same glyph.")
     cid = scene.next_id("c")
     c = Cord(cid, a.id, b.id, sense or "forth")
     if c.sense == "both":
@@ -591,7 +591,7 @@ def thread(env, brood, by):
     scene = env.scene
     b = scene.brood(brood)
     if b.strand:
-        raise VeldError(f"brood {b.id} already carries strand {b.strand}.")
+        raise SigilError(f"brood {b.id} already carries strand {b.strand}.")
     led = env.ledgers.resolve(b.ledger_ref)
     led.kind_of(by)
     sid = scene.next_id("s")
@@ -617,7 +617,7 @@ def pipe(env, tail, head, width):
     a = scene.glyph(tail)
     b = scene.glyph(head)
     if not isinstance(width, (int, float)) or width <= 0:
-        raise VeldError("width must be a positive number.")
+        raise SigilError("width must be a positive number.")
     cid = scene.next_id("c")
     c = Cord(cid, a.id, b.id, "forth")
     c.pipe_width = float(width)
@@ -639,7 +639,7 @@ def barb(env, cord, at):
 def sweep(env, cord, amount):
     c = env.scene.cord(cord)
     if not (-1 <= amount <= 1):
-        raise VeldError("amount must be between -1 and 1.")
+        raise SigilError("amount must be between -1 and 1.")
     c.sweep = float(amount)
     return f"{c.id}: sweep {amount:g}."
 
@@ -656,13 +656,13 @@ def crook(env, cord, style):
 def heft(env, target, weight):
     scene = env.scene
     if not (0 < weight <= 1):
-        raise VeldError("weight must be between 0 and 1.")
+        raise SigilError("weight must be between 0 and 1.")
     if target in scene.cords:
         scene.cords[target].heft = weight
     elif target in scene.strands:
         scene.strands[target].heft = weight
     else:
-        raise VeldError(f"'{target}' is neither a cord nor a strand.")
+        raise SigilError(f"'{target}' is neither a cord nor a strand.")
     return f"{target}: heft {weight:g}."
 
 
@@ -672,7 +672,7 @@ def heft(env, target, weight):
 
 def _resolve_members(env, members):
     if not isinstance(members, list) or not members:
-        raise VeldError("members must be a non-empty list of glyph refs|names.")
+        raise SigilError("members must be a non-empty list of glyph refs|names.")
     out = []
     for m in members:
         g = env.scene.glyph(m)
@@ -697,7 +697,7 @@ def pick(env, brood, vein, relation, value):
     glyphs = scene.target_glyphs(brood)
     rows = [g for g in glyphs if g.row and vein in g.row]
     if not rows:
-        raise VeldError(f"no glyphs of '{brood}' carry a vein '{vein}'.")
+        raise SigilError(f"no glyphs of '{brood}' carry a vein '{vein}'.")
 
     num = isinstance(value, (int, float)) and not isinstance(value, bool)
 
@@ -712,7 +712,7 @@ def pick(env, brood, vein, relation, value):
 
     hits = [g.id for g in rows if keep(g.row[vein])]
     if not hits:
-        raise VeldError(f"no glyphs satisfy {vein} {relation} {value!r}.")
+        raise SigilError(f"no glyphs satisfy {vein} {relation} {value!r}.")
     fid = scene.next_id("f")
     scene.flocks[fid] = Flock(fid, hits)
     return (f"{fid}: {len(hits)} glyph(s) picked where {vein} {relation} {value!r}.",
@@ -741,7 +741,7 @@ def disband(env, band):
     elif band in scene.corrals:
         del scene.corrals[band]
     else:
-        raise VeldError(f"'{band}' is neither a flock nor a corral.")
+        raise SigilError(f"'{band}' is neither a flock nor a corral.")
     return f"{band} disbanded."
 
 
@@ -756,12 +756,12 @@ def disband(env, band):
 def badge(env, target, text=None, vein=None, aim=None):
     scene = env.scene
     if (text is None) == (vein is None):
-        raise VeldError("provide exactly one of text= or vein=.")
+        raise SigilError("provide exactly one of text= or vein=.")
     kind, obj = scene.resolve_target(target)
     aim = aim or "auto"
     if kind == "cord":
         if vein:
-            raise VeldError("cords take text badges only.")
+            raise SigilError("cords take text badges only.")
         obj.badge = text
         return f"{obj.id}: badged '{text}'."
     if kind == "brood":
@@ -776,7 +776,7 @@ def badge(env, target, text=None, vein=None, aim=None):
         for g in glyphs:
             if vein:
                 if not g.row or vein not in g.row:
-                    raise VeldError(f"glyph {g.id} carries no vein '{vein}'.")
+                    raise SigilError(f"glyph {g.id} carries no vein '{vein}'.")
                 spec = {"text": str(g.row[vein]), "vein": vein, "aim": aim}
             else:
                 spec = {"text": text, "aim": aim}
@@ -787,7 +787,7 @@ def badge(env, target, text=None, vein=None, aim=None):
                 g.badge = spec
         n = len(glyphs)
         return f"{n} glyph(s) badged."
-    raise VeldError(f"cannot badge a {kind}.")
+    raise SigilError(f"cannot badge a {kind}.")
 
 
 @op("script", [Param("text", "text"),
@@ -810,7 +810,7 @@ def flag(env, target, text):
     if kind == "flock" and len(obj.members) == 1:
         kind, obj = "glyph", scene.glyphs[obj.members[0]]
     if kind not in ("glyph", "cord"):
-        raise VeldError(f"flag points at a single glyph or cord, not a {kind}.")
+        raise SigilError(f"flag points at a single glyph or cord, not a {kind}.")
     aid = scene.next_id("a")
     scene.annotations.append(Annotation(aid, "flag", text, obj.id, "auto"))
     return (f"{aid}: flag '{text}' tied to {obj.id}.", aid)
@@ -839,9 +839,9 @@ def note(env, parcel, text):
 def rim(env, parcel, side):
     p = env.scene.parcel(parcel)
     if p.hooped:
-        raise VeldError("hooped parcels have no rims.")
+        raise SigilError("hooped parcels have no rims.")
     if side in p.rims:
-        raise VeldError(f"{p.id} already has a {side} rim.")
+        raise SigilError(f"{p.id} already has a {side} rim.")
     p.rims.append(side)
     return f"{p.id}: {side} rim raised (calibration will follow its gauge)."
 
@@ -851,7 +851,7 @@ def rim(env, parcel, side):
 def weft(env, parcel, along):
     p = env.scene.parcel(parcel)
     if along in p.wefts:
-        raise VeldError(f"{p.id} already has a {along} weft.")
+        raise SigilError(f"{p.id} already has a {along} weft.")
     p.wefts.append(along)
     return f"{p.id}: faint weft lines laid along {along}."
 
@@ -862,7 +862,7 @@ def key(env, parcel, brood, trait):
     p = env.scene.parcel(parcel)
     b = env.scene.brood(brood)
     if trait not in b.meterings:
-        raise VeldError(f"brood {b.id} has no {trait} metering to key.")
+        raise SigilError(f"brood {b.id} has no {trait} metering to key.")
     env.scene.keys.append(Key(p.id, b.id, trait))
     return f"key raised on {p.id} for {b.id}'s {trait} metering."
 
@@ -878,7 +878,7 @@ def _emphasis_targets(env, target):
         return scene.target_glyphs(target), kind
     if kind in ("cord", "strand"):
         return [obj], kind
-    raise VeldError(f"cannot emphasize a {kind}.")
+    raise SigilError(f"cannot emphasize a {kind}.")
 
 
 @op("emphasis", [Param("target", "glyph|brood|flock|cord|strand ref")])
@@ -956,7 +956,7 @@ def tint(env, target, hue):
 def veil(env, target, amount):
     scene = env.scene
     if not (0 <= amount <= 1):
-        raise VeldError("amount must be between 0 and 1.")
+        raise SigilError("amount must be between 0 and 1.")
     kind, obj = scene.resolve_target(target)
     if kind in ("cord", "strand"):
         obj.__dict__["veil"] = amount
@@ -973,7 +973,7 @@ def veil(env, target, amount):
                Param("weight", "number 0..3")])
 def outline(env, target, weight):
     if not (0 <= weight <= 3):
-        raise VeldError("weight must be between 0 and 3.")
+        raise SigilError("weight must be between 0 and 3.")
     kind, obj = env.scene.resolve_target(target)
     if kind == "brood":
         obj.fixed["outline"] = weight
@@ -1007,7 +1007,7 @@ def families(env):
 @op("oracle", [Param("family", "family name")], mutates=False)
 def ops(env, family):
     if family not in FAMILY_ORDER:
-        raise VeldError(f"unknown family '{family}'. Families: "
+        raise SigilError(f"unknown family '{family}'. Families: "
                         f"{', '.join(FAMILY_ORDER)}.")
     names = [o.name for o in OPS.values() if o.family == family]
     return "\n".join(f"  {n}" for n in names)
@@ -1016,7 +1016,7 @@ def ops(env, family):
 @op("oracle", [Param("op", "op name")], mutates=False)
 def sig(env, op):
     if op not in OPS:
-        raise VeldError(f"unknown op '{op}'.")
+        raise SigilError(f"unknown op '{op}'.")
     od = OPS[op]
     lines = [od.signature()]
     for p in od.params:
@@ -1058,7 +1058,7 @@ def trace(env):
 @op("helm", [], mutates=False)
 def undo(env):
     if not env._undo:
-        raise VeldError("nothing to undo.")
+        raise SigilError("nothing to undo.")
     scene, ledgers, tlog = env._undo.pop()
     env.scene = scene
     env.ledgers = ledgers
@@ -1083,7 +1083,7 @@ def present(env):
 
 
 BOOTSTRAP = (
-    "VELD bootstrap — you are facing an unfamiliar visual instrument.\n"
+    "SIGIL bootstrap — you are facing an unfamiliar visual instrument.\n"
     "Known entry points:\n"
     "  families()            list op families\n"
     "  ops(family)           list ops in a family\n"

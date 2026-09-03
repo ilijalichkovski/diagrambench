@@ -1,7 +1,7 @@
 [project]
-name = "glyphbench"
-version = "0.1.0"
-description = "Add your description here"
+name = "diagrambench"
+version = "0.2.0"
+description = "DiagramBench: a lifelong tool-learning benchmark around SIGIL, a novel compiled visualization language."
 readme = "README.md"
 authors = [
     { name = "Ilija Lichkovski", email = "ilija.lichkovski@gmail.com" }
@@ -11,9 +11,7 @@ dependencies = [
     "verifiers==0.2.0",
 ]
 
-[project.scripts]
-glyphbench = "glyphbench:main"
-
-[build-system]
-requires = ["uv_build>=0.12.7,<0.13.0"]
-build-backend = "uv_build"
+[tool.uv]
+# virtual project: the workspace itself is not an installable package —
+# the benchmark ships as environments/diagrambench-v1
+package = false

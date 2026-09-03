@@ -1,8 +1,8 @@
-Build a benchmark prototype for lifelong/continual learning called **GlyphBench**.
+Build a benchmark prototype for lifelong/continual learning called **DiagramBench**.
 
 ## Core idea
 
-GlyphBench is a persistent interactive environment in which an LLM agent must learn, through experience, how to use a **completely novel plotting and diagramming SDK**.
+DiagramBench is a persistent interactive environment in which an LLM agent must learn, through experience, how to use a **completely novel plotting and diagramming SDK**.
 
 The SDK should be capable of producing beautiful:
 
@@ -372,7 +372,7 @@ Suggested architecture:
 ```
 Agent API calls
       ↓
-GlyphBench semantic scene
+DiagramBench semantic scene
       ↓
 layout engine
       ↓
@@ -863,7 +863,7 @@ Deliver:
 
 1. `README.md`
 
-   * what GlyphBench is
+   * what DiagramBench is
    * screenshots/examples
    * how to run it
 
