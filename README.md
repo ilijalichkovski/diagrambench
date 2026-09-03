@@ -9,10 +9,10 @@ diagrams — across **200 levels that unlock strictly in order**. Nothing resets
 The diagrams the agent produces are visually inspectable, the skills have to be discovered and then remembered, reused and composed, and correctness is verified structurally.
 
 
-|              |              |
-| ------------ | ------------ |
-| grouped bars | donut        |
-| dual axis    | architecture |
+| | |
+|---|---|
+| ![grouped bars](examples/grouped_bar.png) | ![donut](examples/pie.png) |
+| ![dual axis](examples/curriculum/s5-t162.png) | ![architecture](examples/curriculum/s5-t161.png) |
 
 
 
