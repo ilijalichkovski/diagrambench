@@ -121,6 +121,19 @@ Config: `--taskset.start-level N` and `--taskset.num-levels K` slice the
 lifetime; a reproducible run config lives at
 `configs/eval/diagrambench-codex.toml`.
 
+### Watching a run live
+
+```bash
+python3 scripts/sandbox_viewer.py outputs/<run-dir>   # finds the sandbox id
+python3 scripts/sandbox_viewer.py <sandbox-id>        # or attach directly
+```
+
+Serves a local dashboard (default `:8399`) that polls the sandbox and replays
+its build log through the real engine: level/budget status, the agent's
+source tree as it's written (with unbuilt-changes badges), the toolchain
+trajectory (builds, faults, traps, presents), and the rendered artifact after
+every run — SVG or ASCII, scrubbable back through time.
+
 Reference result (levels 1–10, deepseek-v4-flash, codex harness, prime
 sandbox): **reward 1.00** — 46 toolchain calls, 6 failed builds, 2 runtime
 traps, 11 presents, mean regret +6.5 statements, ~45K trajectory tokens in

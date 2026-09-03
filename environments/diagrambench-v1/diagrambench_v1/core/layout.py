@@ -664,33 +664,37 @@ class Layout:
             if c.tail not in self.pos or c.head not in self.pos:
                 continue
             a, b = self.pos[c.tail], self.pos[c.head]
-            ax, ay, bx, by = self.edge_anchor(a, b) + self.edge_anchor(b, a)
+            ax, ay, na = self.edge_anchor(a, b)
+            bx, by, nb = self.edge_anchor(b, a)
             dx, dy = bx - ax, by - ay
             dist = math.hypot(dx, dy) or 1
             if c.crook == "straight":
                 d = f"M{ax:.1f},{ay:.1f} L{bx:.1f},{by:.1f}"
                 end_dir = (dx / dist, dy / dist)
             elif c.crook == "bend":
-                mx = (ax + bx) / 2
-                d = (f"M{ax:.1f},{ay:.1f} L{mx:.1f},{ay:.1f} "
-                     f"L{mx:.1f},{by:.1f} L{bx:.1f},{by:.1f}")
-                end_dir = (1 if bx > mx else -1, 0)
+                # orthogonal route whose last leg enters along the face normal
+                if nb[0]:
+                    mx = (ax + bx) / 2
+                    d = (f"M{ax:.1f},{ay:.1f} L{mx:.1f},{ay:.1f} "
+                         f"L{mx:.1f},{by:.1f} L{bx:.1f},{by:.1f}")
+                else:
+                    my = (ay + by) / 2
+                    d = (f"M{ax:.1f},{ay:.1f} L{ax:.1f},{my:.1f} "
+                         f"L{bx:.1f},{my:.1f} L{bx:.1f},{by:.1f}")
+                end_dir = (-nb[0], -nb[1])
             else:
-                # gentle bezier along dominant axis, plus sweep offset
+                # bezier that leaves and arrives along the face normals, so
+                # barbs sit perpendicular to the edge they plug into
                 nx, ny = -dy / dist, dx / dist
                 off = c.sweep * dist * 0.35
-                horiz = abs(dx) >= abs(dy)
-                if horiz:
-                    c1 = (ax + dx * 0.45 + nx * off, ay + ny * off)
-                    c2 = (bx - dx * 0.45 + nx * off, by + ny * off)
-                else:
-                    c1 = (ax + nx * off, ay + dy * 0.45 + ny * off)
-                    c2 = (bx + nx * off, by - dy * 0.45 + ny * off)
+                reach = max(dist * 0.4, 26.0)
+                c1 = (ax + na[0] * reach + nx * off,
+                      ay + na[1] * reach + ny * off)
+                c2 = (bx + nb[0] * reach + nx * off,
+                      by + nb[1] * reach + ny * off)
                 d = (f"M{ax:.1f},{ay:.1f} C{c1[0]:.1f},{c1[1]:.1f} "
                      f"{c2[0]:.1f},{c2[1]:.1f} {bx:.1f},{by:.1f}")
-                ex, ey = bx - c2[0], by - c2[1]
-                el = math.hypot(ex, ey) or 1
-                end_dir = (ex / el, ey / el)
+                end_dir = (-nb[0], -nb[1])
             if c.pipe_width:
                 wpx = 5 + 22 * (c.pipe_width / max_pipe)
                 color = hue_hex(c.tint) if c.tint else theme.PIPE
@@ -727,15 +731,18 @@ class Layout:
                          6, c.badge, cls="badge")
 
     def edge_anchor(self, frm, to):
-        """Point on frm's boundary toward to's center."""
+        """Anchor on frm's boundary toward to's center, plus the outward
+        normal of the chosen face (so cords can arrive perpendicular)."""
         dx, dy = to["cx"] - frm["cx"], to["cy"] - frm["cy"]
         if abs(dx) * frm["h"] >= abs(dy) * frm["w"]:
-            x = frm["cx"] + (frm["w"] / 2) * (1 if dx > 0 else -1)
+            sx = 1 if dx > 0 else -1
+            x = frm["cx"] + (frm["w"] / 2) * sx
             y = frm["cy"] + (dy / (abs(dx) or 1)) * frm["w"] / 2 * 0.35
-        else:
-            y = frm["cy"] + (frm["h"] / 2) * (1 if dy > 0 else -1)
-            x = frm["cx"] + (dx / (abs(dy) or 1)) * frm["h"] / 2 * 0.35
-        return (x, y)
+            return (x, y, (sx, 0))
+        sy = 1 if dy > 0 else -1
+        y = frm["cy"] + (frm["h"] / 2) * sy
+        x = frm["cx"] + (dx / (abs(dy) or 1)) * frm["h"] / 2 * 0.35
+        return (x, y, (0, sy))
 
     def arrow(self, id, x, y, dirv, color, w, op=1.0):
         ux, uy = dirv

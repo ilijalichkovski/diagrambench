@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiagramBench — Sandbox Live</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header id="topbar">
+  <div class="brand">Diagram<span>Bench</span> <em>live</em></div>
+  <div class="stat"><label>level</label><span id="st-level">–</span></div>
+  <div class="stat"><label>cleared</label><span id="st-cleared">–</span></div>
+  <div class="stat"><label>toolchain</label><span id="st-tc">–</span></div>
+  <div class="stat"><label>presents</label><span id="st-presents">–</span></div>
+  <div class="stat wide"><label>watching</label><span id="st-source">–</span></div>
+  <div id="st-conn" class="badge idle">connecting…</div>
+</header>
+<main>
+  <aside id="left">
+    <h2>Level</h2>
+    <p id="instruction">Waiting for the sandbox…</p>
+    <h2 class="gap">Project files <span id="files-scope"></span>
+      <span id="dirty-note"></span></h2>
+    <ul id="filetree"></ul>
+    <pre id="filebody" class="mono"></pre>
+  </aside>
+  <section id="center">
+    <div id="center-head">
+      <span id="scene-label">artifact</span>
+      <span class="spacer"></span>
+      <button id="mode-svg" class="mode on">svg</button>
+      <button id="mode-ascii" class="mode">ascii</button>
+      <button id="follow" class="mode on" title="jump to newest">follow</button>
+    </div>
+    <div id="scene-svg"></div>
+    <pre id="scene-ascii" class="mono hidden"></pre>
+  </section>
+  <aside id="right">
+    <div id="right-tabs">
+      <button id="tab-traj" class="tab on">agent trajectory</button>
+      <button id="tab-tool" class="tab">toolchain</button>
+    </div>
+    <div id="trajview"></div>
+    <div id="timeline" class="hidden"></div>
+  </aside>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>
